@@ -1,0 +1,3 @@
+/home/nathan29299292/University/Capstone-Project/Server/build/CMakeFiles/PatternGen.dir
+/home/nathan29299292/University/Capstone-Project/Server/build/CMakeFiles/edit_cache.dir
+/home/nathan29299292/University/Capstone-Project/Server/build/CMakeFiles/rebuild_cache.dir
