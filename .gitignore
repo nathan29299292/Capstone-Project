@@ -1,0 +1,3 @@
+# Ignore cmake build directories.
+build/
+Server/build/

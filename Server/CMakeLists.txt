@@ -4,7 +4,7 @@ project(PatternGen LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-#set(CMAKE_BUILD_TYPE MinSizeRel)
+set(CMAKE_BUILD_TYPE MinSizeRel)
 
 add_executable(PatternGen main.c gui.h gui.c shader.h shader.c)
 
@@ -22,3 +22,5 @@ include_directories(${GLEW_INCLUDE_DIR})
 target_link_libraries(PatternGen PUBLIC GLEW)
 
 target_link_libraries(PatternGen PUBLIC m)
+
+file(COPY fragment.glsl vertex.glsl Source_Sans_Pro DESTINATION ${CMAKE_BINARY_DIR})
