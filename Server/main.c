@@ -27,9 +27,7 @@
 #include "gui.h"
 #include "shader.h"
 #include "canvas.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "image.h"
 
 GLFWwindow* window;
 int terminate;
@@ -43,11 +41,6 @@ const float vertices[] = {
 const unsigned int indices[] = {
     0, 1, 3, // First trinangle
     1, 2, 3  // Second triangle.
-};
-
-// TODO: Add uv_coords.
-const float uv_coords[] = {
-    1
 };
 
 void sig_interrupt() {
@@ -64,29 +57,6 @@ void opengl_check_error() {
         fprintf(stderr, "Error: %d\n", err);
         fprintf(stderr, "1");
     }
-}
-
-void load_texture(char* path) {
-    int width;
-    int height;
-    int num_channels;
-
-    unsigned char* image_data = stbi_load(path, &width, &height, &num_channels, 0);
-
-    GLuint tex;
-    glGenTextures(1, &tex);
-
-    glBindTexture(GL_TEXTURE_2D, tex);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
-}
-
-// TODO: This is just a test.
-int load_the_image() {
-    return 0;
 }
 
 int main(int argc, char** argv) {
@@ -139,6 +109,7 @@ int main(int argc, char** argv) {
     gui_handler* gui = init_gui_handle(window);
 
     canvas_t* canvas = create_canvas_object(500, 500);
+    image_t* image = create_image("noload_img.png");
 
     while(!terminate) {
         glfwPollEvents();
@@ -149,6 +120,7 @@ int main(int argc, char** argv) {
         glClearColor(0.f,0.0f,0.0f,1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        bind_image(image);
         glUseProgram(program);
         draw_canvas_object(canvas);
         opengl_check_error();
@@ -158,6 +130,7 @@ int main(int argc, char** argv) {
     }
 
     shutdown_deinit:
+    destroy_image(image);
     destroy_canvas_object(canvas);
     destroy_gui_handle(gui);
     glfwDestroyWindow(window);

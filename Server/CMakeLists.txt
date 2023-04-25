@@ -7,7 +7,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 #set(CMAKE_BUILD_TYPE MinSizeRel)
 set(CMAKE_BUILD_TYPE Debug)
 
-add_executable(PatternGen main.c gui.h gui.c shader.h shader.c canvas.h canvas.c)
+add_executable(PatternGen main.c gui.h gui.c shader.h shader.c canvas.h canvas.c image.h image.c)
 
 find_package(glfw3 REQUIRED)
 include_directories(${GLFW3_INCLUDE_DIR})
@@ -24,4 +24,4 @@ target_link_libraries(PatternGen PUBLIC GLEW)
 
 target_link_libraries(PatternGen PUBLIC m)
 
-file(COPY fragment.glsl vertex.glsl Source_Sans_Pro DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY fragment.glsl vertex.glsl Source_Sans_Pro noload_img.png DESTINATION ${CMAKE_BINARY_DIR})

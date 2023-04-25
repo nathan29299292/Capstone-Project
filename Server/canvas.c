@@ -16,7 +16,7 @@
 #include <stdlib.h>
 
 float* generate_vertex_coords(unsigned int pixel_w, unsigned int pixel_h) {
-    float* vertices = malloc(sizeof(float) * 3 * 4);
+    float* vertices = malloc(sizeof(float) * (3 + 2) * 4);
 
     // First we have to determine if the width is greater than the height.
     if (pixel_h > pixel_w) {
@@ -25,17 +25,29 @@ float* generate_vertex_coords(unsigned int pixel_w, unsigned int pixel_h) {
         vertices[1] = 1.0f;
         vertices[2] = 0.f;
 
-        vertices[3] = width / 2.f;
-        vertices[4] = -1.0f;
-        vertices[5] = 0.f;
+        vertices[3] = 1.0f;
+        vertices[4] = 1.0f;
 
-        vertices[6] = -(width / 2.f);
-        vertices[7] = -1.0f;
-        vertices[8] = 0.f;
+        vertices[5] = width / 2.f;
+        vertices[6] = -1.0f;
+        vertices[7] = 0.f;
 
-        vertices[9] = -(width / 2.f);
-        vertices[10] = 1.0f;
-        vertices[11] = 0.f;
+        vertices[8] = 1.0f;
+        vertices[9] = 0.f;
+
+        vertices[10] = -(width / 2.f);
+        vertices[11] = -1.0f;
+        vertices[12] = 0.f;
+
+        vertices[13] = 0.0f;
+        vertices[14] = 0.0f;
+
+        vertices[15] = -(width / 2.f);
+        vertices[16] = 1.0f;
+        vertices[17] = 0.f;
+
+        vertices[18] = 0.0f;
+        vertices[19] = 1.0f;
     } else {
         float height = 2 * ((float)pixel_h / (float)pixel_w);
         vertices[0] = 1.0f;
@@ -43,16 +55,28 @@ float* generate_vertex_coords(unsigned int pixel_w, unsigned int pixel_h) {
         vertices[2] = 0.f;
 
         vertices[3] = 1.0f;
-        vertices[4] = -(height / 2.f);
-        vertices[5] = 0.f;
+        vertices[4] = 1.0f;
 
-        vertices[6] = -1.0f;
-        vertices[7] = -(height / 2.f);
-        vertices[8] = 0.f;
+        vertices[5] = 1.0f;
+        vertices[6] = -(height / 2.f);
+        vertices[7] = 0.f;
 
-        vertices[9] = -1.0f;
-        vertices[10] = height / 2.f;
-        vertices[11] = 0.f;
+        vertices[8] = 1.0f;
+        vertices[9] = 0.0f;
+
+        vertices[10] = -1.0f;
+        vertices[11] = -(height / 2.f);
+        vertices[12] = 0.f;
+
+        vertices[13] = 0.0f;
+        vertices[14] = 0.0f;
+
+        vertices[15] = -1.0f;
+        vertices[16] = height / 2.f;
+        vertices[17] = 0.f;
+
+        vertices[18] = 0.0f;
+        vertices[19] = 1.0f;
     }
 
     return vertices;
@@ -77,7 +101,7 @@ canvas_t* create_canvas_object(unsigned int pixel_w, unsigned int pixel_h) {
 
     glGenBuffers(1, &canvas->vertex_buffer_object);
     glBindBuffer(GL_ARRAY_BUFFER, canvas->vertex_buffer_object);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 3, canvas->rectangle_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * (3 + 2), canvas->rectangle_vertices, GL_STATIC_DRAW);
 
     glGenBuffers(1, &canvas->element_buffer_object);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->element_buffer_object);
@@ -90,13 +114,18 @@ canvas_t* create_canvas_object(unsigned int pixel_w, unsigned int pixel_h) {
 void draw_canvas_object(canvas_t* canvas) {
     glBindVertexArray(canvas->vertex_array_object);
 
-    glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, canvas->vertex_buffer_object);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->element_buffer_object);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), NULL);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
     glBindVertexArray(0);
 }
 
