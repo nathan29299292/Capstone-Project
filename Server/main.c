@@ -26,6 +26,7 @@
 
 #include "gui.h"
 #include "shader.h"
+#include "canvas.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -83,6 +84,11 @@ void load_texture(char* path) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
 }
 
+// TODO: This is just a test.
+int load_the_image() {
+    return 0;
+}
+
 int main(int argc, char** argv) {
     if (!glfwInit())
     {
@@ -98,9 +104,7 @@ int main(int argc, char** argv) {
 
     fprintf(stdout, "Initialized glfw.\n");
 
-
-
-    window = glfwCreateWindow(1280, 720, "PatternGen", NULL, NULL);
+    window = glfwCreateWindow(1280, 1280, "PatternGen", NULL, NULL);
     if (window == NULL) {
         glfwTerminate();
         fprintf(stderr, "Error: Failed to create window.\n");
@@ -118,7 +122,7 @@ int main(int argc, char** argv) {
     fprintf(stdout, "Initialized glew.\n");
     signal(SIGINT, sig_interrupt);
 
-    glViewport(0, 0, 1280, 720);
+    glViewport(0, 0, 1280, 1280);
 
     shader_file_tuple tuple = load_shader_files("vertex.glsl", "fragment.glsl");
     if (tuple.status == -1) {
@@ -134,19 +138,7 @@ int main(int argc, char** argv) {
 
     gui_handler* gui = init_gui_handle(window);
 
-    unsigned int VAO = 0;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    unsigned int VBO = 0;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12, vertices, GL_STATIC_DRAW);
-
-    unsigned int EBO = 0;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6, indices, GL_STATIC_DRAW);
+    canvas_t* canvas = create_canvas_object(500, 500);
 
     while(!terminate) {
         glfwPollEvents();
@@ -157,15 +149,8 @@ int main(int argc, char** argv) {
         glClearColor(0.f,0.0f,0.0f,1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glBindVertexArray(VAO);
-
         glUseProgram(program);
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glDisableVertexAttribArray(0);
+        draw_canvas_object(canvas);
         opengl_check_error();
 
         process_gui_handle(gui);
@@ -173,6 +158,7 @@ int main(int argc, char** argv) {
     }
 
     shutdown_deinit:
+    destroy_canvas_object(canvas);
     destroy_gui_handle(gui);
     glfwDestroyWindow(window);
     glfwTerminate();
