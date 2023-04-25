@@ -536,7 +536,6 @@ nk_glfw3_init(GLFWwindow *win, enum nk_glfw_init_state init_state,
     glfw.is_double_click_down = nk_false;
     glfw.double_click_pos = nk_vec2(0, 0);
 
-
     return &glfw.ctx;
 }
 

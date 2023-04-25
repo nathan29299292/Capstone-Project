@@ -20,12 +20,14 @@
 
 typedef struct image_t {
     unsigned char* image_data;
+    unsigned int width;
+    unsigned int height;
 
     GLuint texture;
 } image_t;
 
 image_t* create_image(char* path);
-void dither_image(image_t* image);
+image_t* dither_image(image_t* image);
 void bind_image(image_t* image);
 void destroy_image(image_t* image);
 

@@ -13,6 +13,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
 **/
 #include "gui.h"
+#include "canvas.h"
+#include "image.h"
 #include <string.h>
 
 #define NK_INCLUDE_FIXED_TYPES
@@ -36,11 +38,14 @@
  *
  *
  * */
-gui_handler* init_gui_handle(GLFWwindow *window) {
+gui_handler* init_gui_handle(GLFWwindow *window, canvas_t* canvas) {
     gui_handler* gui = malloc(sizeof(gui_handler));
     gui->file_path_textbox_buffer[0] = '\0'; // Set the initial value to zero at least.
     gui->gui_state = 0;
+    gui->binded = 0;
+    gui->finished = 0;
     gui->ctx = nk_glfw3_init(window, NK_GLFW3_INSTALL_CALLBACKS, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+    gui->canvas = canvas;
 
     struct nk_font_atlas *atlas;
 
@@ -77,6 +82,13 @@ void gui_load_file_window(gui_handler* gui) {
         nk_edit_string_zero_terminated(gui->ctx, NK_EDIT_FIELD, gui->file_path_textbox_buffer, sizeof(gui->file_path_textbox_buffer)-1, nk_filter_default);
         if (nk_button_label(gui->ctx, "Load")) {
             gui->gui_state = 1;
+            gui->loaded = create_image(gui->file_path_textbox_buffer);
+            if (gui->loaded == NULL) {
+                goto skip;
+            }
+            mutate_canvas_object(gui->canvas, gui->loaded->width, gui->loaded->height);
+            gui->binded = 1;
+            skip:
         }
 
     }
@@ -87,10 +99,9 @@ void gui_generate_pattern(gui_handler* gui) {
     if (nk_begin(gui->ctx, "Generator", nk_rect(50, 50, 600, 650), NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_TITLE|NK_WINDOW_MINIMIZABLE)) {
 
         nk_layout_row_dynamic(gui->ctx, 50, 2);
-        nk_label(gui->ctx, "File Path", NK_TEXT_ALIGN_LEFT|NK_TEXT_ALIGN_MIDDLE);
-        nk_edit_string_zero_terminated(gui->ctx, NK_EDIT_FIELD, gui->file_path_textbox_buffer, sizeof(gui->file_path_textbox_buffer)-1, nk_filter_default);
         if (nk_button_label(gui->ctx, "Generate Pattern")) {
-                /* event handling */
+               gui->reprocessed = dither_image(gui->loaded);
+               gui->finished = 1;
         }
 
     }

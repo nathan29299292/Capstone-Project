@@ -26,28 +26,28 @@ float* generate_vertex_coords(unsigned int pixel_w, unsigned int pixel_h) {
         vertices[2] = 0.f;
 
         vertices[3] = 1.0f;
-        vertices[4] = 1.0f;
+        vertices[4] = 0.0f;
 
         vertices[5] = width / 2.f;
         vertices[6] = -1.0f;
         vertices[7] = 0.f;
 
         vertices[8] = 1.0f;
-        vertices[9] = 0.f;
+        vertices[9] = 1.f;
 
         vertices[10] = -(width / 2.f);
         vertices[11] = -1.0f;
         vertices[12] = 0.f;
 
         vertices[13] = 0.0f;
-        vertices[14] = 0.0f;
+        vertices[14] = 1.0f;
 
         vertices[15] = -(width / 2.f);
         vertices[16] = 1.0f;
         vertices[17] = 0.f;
 
         vertices[18] = 0.0f;
-        vertices[19] = 1.0f;
+        vertices[19] = 0.0f;
     } else {
         float height = 2 * ((float)pixel_h / (float)pixel_w);
         vertices[0] = 1.0f;
@@ -55,28 +55,28 @@ float* generate_vertex_coords(unsigned int pixel_w, unsigned int pixel_h) {
         vertices[2] = 0.f;
 
         vertices[3] = 1.0f;
-        vertices[4] = 1.0f;
+        vertices[4] = 0.0f;
 
         vertices[5] = 1.0f;
         vertices[6] = -(height / 2.f);
         vertices[7] = 0.f;
 
         vertices[8] = 1.0f;
-        vertices[9] = 0.0f;
+        vertices[9] = 1.0f;
 
         vertices[10] = -1.0f;
         vertices[11] = -(height / 2.f);
         vertices[12] = 0.f;
 
         vertices[13] = 0.0f;
-        vertices[14] = 0.0f;
+        vertices[14] = 1.0f;
 
         vertices[15] = -1.0f;
         vertices[16] = height / 2.f;
         vertices[17] = 0.f;
 
         vertices[18] = 0.0f;
-        vertices[19] = 1.0f;
+        vertices[19] = 0.0f;
     }
 
     return vertices;
@@ -142,7 +142,7 @@ void mutate_canvas_object(canvas_t* canvas, unsigned int new_pixel_w, unsigned i
     glBindVertexArray(canvas->vertex_array_object);
     glBindBuffer(GL_ARRAY_BUFFER, canvas->vertex_buffer_object);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->element_buffer_object);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * 4 * 3, canvas->rectangle_vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * 4 * (3 + 2), canvas->rectangle_vertices);
 
     glBindVertexArray(0);
 }

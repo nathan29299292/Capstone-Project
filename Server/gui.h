@@ -15,6 +15,7 @@
 #ifndef GUI_H
 #define GUI_H
 
+#include "image.h"
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
@@ -23,6 +24,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <assert.h>
+#include "canvas.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -33,9 +35,15 @@ typedef struct gui_handler {
     struct nk_context* ctx;
     unsigned int gui_state;
     char file_path_textbox_buffer[GUI_MAX_FILE_PATH_TEXT_BUFFER];
+    image_t* loaded;
+    image_t* reprocessed;
+    canvas_t* canvas;
+
+    int finished;
+    int binded;
 } gui_handler;
 
-gui_handler* init_gui_handle(GLFWwindow *window);
+gui_handler* init_gui_handle(GLFWwindow *window, canvas_t* canvas);
 void process_gui_handle(gui_handler* gui);
 void destroy_gui_handle(gui_handler* gui);
 

@@ -106,9 +106,9 @@ int main(int argc, char** argv) {
     }
     unload_shader_files(tuple);
 
-    gui_handler* gui = init_gui_handle(window);
 
     canvas_t* canvas = create_canvas_object(500, 500);
+    gui_handler* gui = init_gui_handle(window, canvas);
     image_t* image = create_image("noload_img.png");
 
     while(!terminate) {
@@ -120,7 +120,14 @@ int main(int argc, char** argv) {
         glClearColor(0.f,0.0f,0.0f,1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        bind_image(image);
+        if (!gui->binded && !gui->finished){
+            bind_image(image);
+        } else if (gui->binded && !gui->finished) {
+            bind_image(gui->loaded);
+        } else if (gui->binded && gui->finished) {
+            bind_image(gui->reprocessed);
+        }
+
         glUseProgram(program);
         draw_canvas_object(canvas);
         opengl_check_error();
