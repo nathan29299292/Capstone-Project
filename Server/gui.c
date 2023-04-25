@@ -88,8 +88,11 @@ void gui_load_file_window(gui_handler* gui) {
             }
             mutate_canvas_object(gui->canvas, gui->loaded->width, gui->loaded->height);
             gui->binded = 1;
+            goto exit;
             skip:
+            gui->gui_state = 0;
         }
+        exit:
 
     }
     nk_end(gui->ctx);

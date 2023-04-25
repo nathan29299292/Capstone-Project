@@ -68,14 +68,14 @@ void set_all_pixel(image_t* image, int j, int i, unsigned int value, unsigned ch
     image->image_data[(image->width * j + i)*3 + 2] = (unsigned char)(inc * (unsigned int)image->image_data[(image->width * j + i)*3 + 2] + (unsigned int)value);
 }
 
-unsigned char get_error_diffusion(unsigned char val) {
+int get_error_diffusion(unsigned char val) {
     unsigned char l_dist = 255 - val;
     unsigned char h_dist = val;
 
     if (l_dist > h_dist) {
         return val;
     } else {
-        return 255 - val;
+        return -1*(255 - val);
     }
 }
 
@@ -105,14 +105,14 @@ image_t* dither_image(image_t* image) {
         for(int i = 0; i < image->width; i++) {
             unsigned char val = get_pixel(image, j, i, 0);
 
-            unsigned char error = get_error_diffusion(val);
+            int error = get_error_diffusion(val);
             unsigned char new_val = get_new_pixel(val);
 
             set_all_pixel(image, j, i, new_val, 0);
             set_all_pixel(image, j, i+1, (((unsigned int)7 * (unsigned int)error) / 16), 1);
-            set_all_pixel(image, j+1, i+1,(((unsigned int)3 * (unsigned int)error) / 16), 1);
+            set_all_pixel(image, j+1, i+1,(((unsigned int)1 * (unsigned int)error) / 16), 1);
             set_all_pixel(image, j+1, i, (((unsigned int)5 * (unsigned int)error) / 16), 1);
-            set_all_pixel(image, j+1, i-1,(((unsigned int)8 * (unsigned int)error) / 16), 1);
+            set_all_pixel(image, j+1, i-1,(((unsigned int)3 * (unsigned int)error) / 16), 1);
         }
     }
 
