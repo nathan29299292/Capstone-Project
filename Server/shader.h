@@ -18,7 +18,29 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <fileapi.h>
+#include <winbase.h>
+#include <handleapi.h>
+#include <errhandlingapi.h>
+#endif
+
+#ifdef _WIN32
+typedef struct WindowsFileHandles {
+    HANDLE hVertex;
+    HANDLE hVertexFileMapping;
+
+    HANDLE hFragment;
+    HANDLE hFragmentFileMapping;
+} WindowsFileHandles;
+#endif
+
 typedef struct shader_file_tuple {
+    #ifdef _WIN32
+    WindowsFileHandles handles; // PRIVATE
+    #endif
+
     unsigned long vertex_file_size;
     unsigned long fragment_file_size;
     unsigned int status;
