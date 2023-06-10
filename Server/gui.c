@@ -24,9 +24,10 @@
 #define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
 #define NK_INCLUDE_FONT_BAKING
 #define NK_IMPLEMENTATION
-#define NK_GLFW_GL4_IMPLEMENTATION
+#define NK_GLFW_GL3_IMPLEMENTATION
+#define NK_KEYSTATE_BASED_INPUT
 #include "nuklear.h"
-#include "nuklear_glfw_gl4.h"
+#include "nuklear_glfw_gl3.h"
 
 #define NK_MAX_VERTEX_BUFFER 512 * 1024
 #define NK_MAX_ELEMENT_BUFFER 128 * 1024
@@ -44,21 +45,24 @@ gui_handler* init_gui_handle(GLFWwindow *window, canvas_t* canvas) {
     gui->gui_state = 0;
     gui->binded = 0;
     gui->finished = 0;
-    gui->ctx = nk_glfw3_init(window, NK_GLFW3_INSTALL_CALLBACKS, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+    // Initialize the glfw_context.
+    gui->glfw_ctx = malloc(sizeof(struct nk_glfw));
+    // Intiialize the main context.
+    gui->ctx = nk_glfw3_init(gui->glfw_ctx, window, NK_GLFW3_INSTALL_CALLBACKS);
     gui->canvas = canvas;
 
     struct nk_font_atlas *atlas;
 
-    nk_glfw3_font_stash_begin(&atlas);
+    nk_glfw3_font_stash_begin(gui->glfw_ctx, &atlas);
     struct nk_font *source = nk_font_atlas_add_from_file(atlas, "./Source_Sans_Pro/SourceSansPro-Regular.ttf", 24, 0);
-    nk_glfw3_font_stash_end();
+    nk_glfw3_font_stash_end(gui->glfw_ctx);
     nk_style_set_font(gui->ctx, &source->handle);
 
     return gui;
 }
 
 void process_gui_handle(gui_handler* gui) {
-    nk_glfw3_new_frame();
+    nk_glfw3_new_frame(gui->glfw_ctx);
 
     if (gui->gui_state == 0) {
         gui_load_file_window(gui);
@@ -66,11 +70,12 @@ void process_gui_handle(gui_handler* gui) {
         gui_generate_pattern(gui);
     }
 
-    nk_glfw3_render(NK_ANTI_ALIASING_ON);
+    nk_glfw3_render(gui->glfw_ctx, NK_ANTI_ALIASING_ON, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
 }
 
 void destroy_gui_handle(gui_handler* gui) {
-   nk_glfw3_shutdown(); // The context should be freed at this point.
+   nk_glfw3_shutdown(gui->glfw_ctx); // The context should be freed at this point.
+   free(gui->glfw_ctx);
    free(gui);
 }
 

@@ -32,6 +32,7 @@
 #define GUI_MAX_FILE_PATH_TEXT_BUFFER 128
 
 typedef struct gui_handler {
+    struct nk_glfw* glfw_ctx;
     struct nk_context* ctx;
     unsigned int gui_state;
     char file_path_textbox_buffer[GUI_MAX_FILE_PATH_TEXT_BUFFER];
