@@ -27,6 +27,7 @@ image_t* create_image(char* path) {
     image->image_data = stbi_load(path, &width, &height, &num_channels, 0);
 
     if (image->image_data == NULL) {
+        free(image);
         fprintf(stderr, "Error: Failed to load an image.");
         return NULL;
     }

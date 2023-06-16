@@ -31,17 +31,6 @@
 
 GLFWwindow* window;
 int terminate;
-const float vertices[] = {
-     0.5f,  0.5f, 0.0f,  // top right
-     0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f   // top left
-};
-
-const unsigned int indices[] = {
-    0, 1, 3, // First trinangle
-    1, 2, 3  // Second triangle.
-};
 
 void sig_interrupt() {
     if (terminate == 1) {
@@ -136,10 +125,10 @@ int main(int argc, char** argv) {
         glfwSwapBuffers(window);
     }
 
-    shutdown_deinit:
     destroy_image(image);
     destroy_canvas_object(canvas);
     destroy_gui_handle(gui);
+    shutdown_deinit:
     glfwDestroyWindow(window);
     glfwTerminate();
 

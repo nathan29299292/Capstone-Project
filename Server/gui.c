@@ -86,19 +86,15 @@ void gui_load_file_window(gui_handler* gui) {
         nk_label(gui->ctx, "File Path", NK_TEXT_ALIGN_LEFT|NK_TEXT_ALIGN_MIDDLE);
         nk_edit_string_zero_terminated(gui->ctx, NK_EDIT_FIELD, gui->file_path_textbox_buffer, sizeof(gui->file_path_textbox_buffer)-1, nk_filter_default);
         if (nk_button_label(gui->ctx, "Load")) {
-            gui->gui_state = 1;
             gui->loaded = create_image(gui->file_path_textbox_buffer);
             if (gui->loaded == NULL) {
-                goto skip;
+                nk_end(gui->ctx); // End the context.
+                return;
             }
+            gui->gui_state = 1;
             mutate_canvas_object(gui->canvas, gui->loaded->width, gui->loaded->height);
             gui->binded = 1;
-            goto exit;
-            skip:
-            gui->gui_state = 0;
         }
-        exit:
-
     }
     nk_end(gui->ctx);
 }
