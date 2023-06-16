@@ -28,7 +28,7 @@ image_t* create_image(char* path) {
 
     if (image->image_data == NULL) {
         free(image);
-        fprintf(stderr, "Error: Failed to load an image.");
+        fprintf(stderr, "Error: Failed to load an image.\n");
         return NULL;
     }
 
