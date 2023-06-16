@@ -13,13 +13,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
 **/
 #include <stdio.h>
-#include <signal.h>
-#include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
+#ifndef _WIN32
+#include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <assert.h>
+#endif
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -79,6 +80,7 @@ int main(int argc, char** argv) {
         return -1;
     }
     fprintf(stdout, "Initialized glew.\n");
+
     signal(SIGINT, sig_interrupt);
 
     glViewport(0, 0, 1280, 1280);
