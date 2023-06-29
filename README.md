@@ -17,19 +17,19 @@ First create a build folder within the Server folder and change the current
 directory into that build folder,
 
 ```console
-$ mkdir Server/build; cd Server/build
+mkdir Server/build; cd Server/build
 ```
 
 Next, generate the Makefiles using CMake,
 
 ```console
-$ cmake ..
+cmake ..
 ``` 
 
 Lastly, run `make`,
 
 ```console
-$ make
+make
 ``` 
 
 This should create `PatternGen` and also copy the needed files into the same
