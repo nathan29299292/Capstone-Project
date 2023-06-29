@@ -42,7 +42,7 @@ static int check_file_map_error (void* map, int* error) {
 #endif
 
 const char* shader_file_open_error_string (int error) {
-    #ifdef _WIN32
+#ifdef _WIN32
     switch (error) {
         case ERROR_FILE_NOT_FOUND:
             return "File doesn't exist or isn't readable\n";
@@ -53,7 +53,7 @@ const char* shader_file_open_error_string (int error) {
         default:
             return "Something went wrong reading the file.\n";
     }
-    #else
+#else
     switch (error) {
         case EACCES:
             return "File doesn't exist or isn't readable\n";
@@ -64,11 +64,11 @@ const char* shader_file_open_error_string (int error) {
         default:
             return "Something went wrong reading the file.\n";
     }
-    #endif
+#endif
 }
 
 shader_file_tuple load_shader_files(const char* vertex_shader_path, const char* fragment_shader_path) {
-    #ifdef _WIN32
+#ifdef _WIN32
 
 
     HANDLE hVertex;
@@ -131,7 +131,7 @@ shader_file_tuple load_shader_files(const char* vertex_shader_path, const char* 
     return return_tuple;
 
 
-    #else
+#else
 
 
     int error = 0;
@@ -175,11 +175,11 @@ shader_file_tuple load_shader_files(const char* vertex_shader_path, const char* 
     return return_tuple;
 
 
-    #endif
+#endif
 }
 
 void unload_shader_files(shader_file_tuple tuple) {
-    #ifdef _WIN32
+#ifdef _WIN32
 
 
     UnmapViewOfFile(tuple.fragment_code);
@@ -191,14 +191,14 @@ void unload_shader_files(shader_file_tuple tuple) {
     CloseHandle(tuple.handles.hVertex);
 
 
-    #else
+#else
 
 
     munmap(tuple.vertex_code, tuple.vertex_file_size);
     munmap(tuple.fragment_code, tuple.fragment_file_size);
 
 
-    #endif
+#endif
 }
 
 unsigned int compile_shader_files(shader_file_tuple tuple) {
@@ -222,7 +222,7 @@ unsigned int compile_shader_files(shader_file_tuple tuple) {
         char errorLog[logSize];
         glGetShaderInfoLog(vertex_shader, logSize, &logSize, errorLog);
         fprintf(stderr, "%s", errorLog);
-        return -1;
+        return (unsigned int)-1; // Maximum int.
     }
 
     glCompileShader(fragment_shader);
@@ -238,7 +238,7 @@ unsigned int compile_shader_files(shader_file_tuple tuple) {
         char errorLog[logSize];
         glGetShaderInfoLog(fragment_shader, logSize, &logSize, errorLog);
         fprintf(stderr, "%s", errorLog);
-        return -1;
+        return -(unsigned int)-1; // Maximum int.
     }
 
     // Link the programs together.

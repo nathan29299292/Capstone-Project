@@ -43,8 +43,8 @@ typedef struct shader_file_tuple {
 
     unsigned long vertex_file_size;
     unsigned long fragment_file_size;
-    unsigned int status;
-    unsigned int error;
+    int status;
+    int error;
     char* vertex_code;
     char* fragment_code;
 } shader_file_tuple;

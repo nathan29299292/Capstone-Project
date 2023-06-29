@@ -24,7 +24,7 @@ image_t* create_image(char* path) {
     int height;
     int num_channels;
 
-    image->image_data = stbi_load(path, &width, &height, &num_channels, 0);
+    image->image_data = stbi_load(path, &width, &height, &num_channels, STBI_rgb);
 
     if (image->image_data == NULL) {
         free(image);
@@ -46,27 +46,27 @@ image_t* create_image(char* path) {
 }
 
 void set_pixel(image_t* image, int j, int i, unsigned char value, int offset) {
-    if (j < 0 || j >= image->height || i < 0 || i >= image->width) {
+    if (j < 0 || j >= (int)image->height || i < 0 || i >= (int)image->width) {
         return;
     }
-    image->image_data[(image->width * j + i)*3 + offset] = value;
+    image->image_data[((int)image->width * j + i)*3 + offset] = value;
 }
 
 unsigned char get_pixel(image_t* image, int j, int i, int offset) {
-    if (j < 0 || j >= image->height || i < 0 || i >= image->width) {
+    if (j < 0 || j >= (int)image->height || i < 0 || i >= (int)image->width) {
         return 0;
     }
-    return image->image_data[(image->width * j + i)*3 + offset];
+    return image->image_data[((int)image->width * j + i)*3 + offset];
 }
 
 
 void set_all_pixel(image_t* image, int j, int i, unsigned int value, unsigned char inc) {
-    if (j < 0 || j >= image->height || i < 0 || i >= image->width) {
+    if (j < 0 || j >= (int)image->height || i < 0 || i >= (int)image->width) {
         return;
     }
-    image->image_data[(image->width * j + i)*3 + 0] = (unsigned char)(inc * (unsigned int)image->image_data[(image->width * j + i)*3 + 0] + (unsigned int)value);
-    image->image_data[(image->width * j + i)*3 + 1] = (unsigned char)(inc * (unsigned int)image->image_data[(image->width * j + i)*3 + 1] + (unsigned int)value);
-    image->image_data[(image->width * j + i)*3 + 2] = (unsigned char)(inc * (unsigned int)image->image_data[(image->width * j + i)*3 + 2] + (unsigned int)value);
+    image->image_data[((int)image->width * j + i)*3 + 0] = (unsigned char)(inc * (unsigned int)image->image_data[((int)image->width * j + i)*3 + 0] + (unsigned int)value);
+    image->image_data[((int)image->width * j + i)*3 + 1] = (unsigned char)(inc * (unsigned int)image->image_data[((int)image->width * j + i)*3 + 1] + (unsigned int)value);
+    image->image_data[((int)image->width * j + i)*3 + 2] = (unsigned char)(inc * (unsigned int)image->image_data[((int)image->width * j + i)*3 + 2] + (unsigned int)value);
 }
 
 int get_error_diffusion(unsigned char val) {
@@ -92,8 +92,8 @@ unsigned char get_new_pixel(unsigned char val) {
 }
 
 image_t* dither_image(image_t* image) {
-    for(int j = 0; j < image->height; j++) {
-        for(int i = 0; i < image->width; i++) {
+    for(int j = 0; j < (int)image->height; j++) {
+        for(int i = 0; i < (int)image->width; i++) {
             // First convert it to grayscale.
             unsigned char val = (get_pixel(image, j, i, 0) + get_pixel(image, j, i, 1) + get_pixel(image, j, i, 2))/3;
             set_pixel(image, j, i, val, 0);
@@ -102,8 +102,8 @@ image_t* dither_image(image_t* image) {
         }
     }
 
-    for(int j = 0; j < image->height; j++) {
-        for(int i = 0; i < image->width; i++) {
+    for(int j = 0; j < (int)image->height; j++) {
+        for(int i = 0; i < (int)image->width; i++) {
             unsigned char val = get_pixel(image, j, i, 0);
 
             int error = get_error_diffusion(val);

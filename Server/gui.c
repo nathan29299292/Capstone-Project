@@ -54,7 +54,7 @@ gui_handler* init_gui_handle(GLFWwindow *window, canvas_t* canvas) {
     struct nk_font_atlas *atlas;
 
     nk_glfw3_font_stash_begin(gui->glfw_ctx, &atlas);
-    struct nk_font *source = nk_font_atlas_add_from_file(atlas, "./Source_Sans_Pro/SourceSansPro-Regular.ttf", 24, 0);
+    struct nk_font *source = nk_font_atlas_add_from_file(atlas, "fonts/default.ttf", 24, 0);
     nk_glfw3_font_stash_end(gui->glfw_ctx);
     nk_style_set_font(gui->ctx, &source->handle);
 

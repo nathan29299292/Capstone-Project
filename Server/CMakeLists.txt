@@ -5,7 +5,10 @@ project(PatternGen LANGUAGES C)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE MinSizeRel)
-#set(CMAKE_BUILD_TYPE Debug)
+
+if (CMAKE_C_COMPILER_ID MATCHES "GNU")
+  add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
 
 add_executable(PatternGen main.c gui.h gui.c shader.h shader.c canvas.h canvas.c image.h image.c)
 
@@ -24,4 +27,6 @@ target_link_libraries(PatternGen PUBLIC GLEW)
 
 target_link_libraries(PatternGen PUBLIC m)
 
-file(COPY fragment.glsl vertex.glsl Source_Sans_Pro noload_img.png DESTINATION ${CMAKE_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/shaders/fragment.glsl ${CMAKE_CURRENT_BINARY_DIR}/shaders/fragment.glsl COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/shaders/vertex.glsl ${CMAKE_CURRENT_BINARY_DIR}/shaders/vertex.glsl COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fonts/default.ttf ${CMAKE_CURRENT_BINARY_DIR}/fonts/default.ttf COPYONLY)

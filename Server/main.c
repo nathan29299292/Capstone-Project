@@ -49,7 +49,7 @@ void opengl_check_error() {
     }
 }
 
-int main(int argc, char** argv) {
+int main() {
     if (!glfwInit())
     {
         fprintf(stderr, "Error: Failed to initialize glfw.\n");
@@ -85,14 +85,14 @@ int main(int argc, char** argv) {
 
     glViewport(0, 0, 1280, 1280);
 
-    shader_file_tuple tuple = load_shader_files("vertex.glsl", "fragment.glsl");
+    shader_file_tuple tuple = load_shader_files("shaders/vertex.glsl", "shaders/fragment.glsl");
     if (tuple.status == -1) {
         fprintf(stderr, "Error: ");
         fprintf(stderr, "%s\n", shader_file_open_error_string(tuple.error));
         goto shutdown_deinit;
     }
     GLuint program = compile_shader_files(tuple);
-    if (program == -1) {
+    if (program == (unsigned int)-1) {
         goto shutdown_deinit;
     }
     unload_shader_files(tuple);
@@ -100,7 +100,6 @@ int main(int argc, char** argv) {
 
     canvas_t* canvas = create_canvas_object(500, 500);
     gui_handler* gui = init_gui_handle(window, canvas);
-    image_t* image = create_image("noload_img.png");
 
     while(!terminate) {
         glfwPollEvents();
@@ -111,23 +110,26 @@ int main(int argc, char** argv) {
         glClearColor(0.f,0.0f,0.0f,1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glUseProgram(program);
+        opengl_check_error();
+
+        // TODO: It would probably be a good idea to associate the
+        // image and the shader with draw_canvas_object and canvas_t.
+        // That way it removes a lot of jank.
         if (!gui->binded && !gui->finished){
-            bind_image(image);
+            // Do nothing.
         } else if (gui->binded && !gui->finished) {
             bind_image(gui->loaded);
+            draw_canvas_object(canvas);
         } else if (gui->binded && gui->finished) {
             bind_image(gui->reprocessed);
+            draw_canvas_object(canvas);
         }
-
-        glUseProgram(program);
-        draw_canvas_object(canvas);
-        opengl_check_error();
 
         process_gui_handle(gui);
         glfwSwapBuffers(window);
     }
 
-    destroy_image(image);
     destroy_canvas_object(canvas);
     destroy_gui_handle(gui);
     shutdown_deinit:
