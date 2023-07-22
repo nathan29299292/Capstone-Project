@@ -32,6 +32,10 @@
 
 GLFWwindow* window;
 int terminate;
+canvas_t* canvas;
+gui_handler* gui;
+float zoom;
+unsigned int width, height;
 
 void sig_interrupt() {
     if (terminate == 1) {
@@ -45,8 +49,22 @@ void opengl_check_error() {
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {
         fprintf(stderr, "Error: %d\n", err);
-        fprintf(stderr, "1");
     }
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int w, int h) {
+    window = window; // Get the compiler to stop complaining.
+    mutate_canvas_object(canvas, canvas->pixel_w, canvas->pixel_h, w, h, zoom);
+    glViewport(0, 0, w, h);
+    width = w;
+    height = h;
+}
+
+void scroll_zoom_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    zoom += yoffset * 0.05;
+    xoffset = xoffset;
+    window = window;
+    mutate_canvas_object(canvas, canvas->pixel_w, canvas->pixel_h, width, height, zoom);
 }
 
 int main() {
@@ -58,9 +76,12 @@ int main() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+    width = 1280;
+    height = 1280;
+    zoom = 1.0f;
 
     fprintf(stdout, "Initialized glfw.\n");
 
@@ -88,7 +109,7 @@ int main() {
     shader_file_tuple tuple = load_shader_files("shaders/vertex.glsl", "shaders/fragment.glsl");
     if (tuple.status == -1) {
         fprintf(stderr, "Error: ");
-        fprintf(stderr, "%s\n", shader_file_open_error_string(tuple.error));
+        fprintf(stderr, "%s", shader_file_open_error_string(tuple.error));
         goto shutdown_deinit;
     }
     GLuint program = compile_shader_files(tuple);
@@ -97,9 +118,11 @@ int main() {
     }
     unload_shader_files(tuple);
 
+    canvas = create_canvas_object(500, 500);
+    gui = init_gui_handle(window, canvas);
 
-    canvas_t* canvas = create_canvas_object(500, 500);
-    gui_handler* gui = init_gui_handle(window, canvas);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetScrollCallback(window, scroll_zoom_callback);
 
     while(!terminate) {
         glfwPollEvents();

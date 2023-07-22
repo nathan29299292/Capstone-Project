@@ -15,7 +15,7 @@
 #include "canvas.h"
 #include <stdlib.h>
 
-float* generate_vertex_coords(unsigned int pixel_w, unsigned int pixel_h) {
+static float* generate_vertex_coords(unsigned int pixel_w, unsigned int pixel_h) {
     float* vertices = malloc(sizeof(float) * (3 + 2) * 4);
 
     // First we have to determine if the width is greater than the height.
@@ -82,6 +82,23 @@ float* generate_vertex_coords(unsigned int pixel_w, unsigned int pixel_h) {
     return vertices;
 }
 
+static void transform_world_coordinates_to_window_coordinates(float* vertex_coords, unsigned int window_width, unsigned int window_height, unsigned int elements_count, unsigned int element_stride, int vertex_pointer_offset, float zoom) {
+    // Calculate the aspect ratios first.
+    float window_aspect_ratio = (float)window_width/(float)window_height;
+    float inverse_window_aspect_ratio = (float)window_height/(float)window_width;
+
+    unsigned int i;
+    for (i = 0; i < elements_count; i++) {
+        if (window_aspect_ratio > 1.0f) {
+            vertex_coords[i * element_stride + vertex_pointer_offset] = vertex_coords[i * element_stride + vertex_pointer_offset] * inverse_window_aspect_ratio * zoom;
+            vertex_coords[i * element_stride + 1 + vertex_pointer_offset] = vertex_coords[i * element_stride + 1 + vertex_pointer_offset] * zoom;
+        } else {
+            vertex_coords[i * element_stride + 1 + vertex_pointer_offset] = vertex_coords[i * element_stride + 1 + vertex_pointer_offset] * window_aspect_ratio * zoom;
+            vertex_coords[i * element_stride + vertex_pointer_offset] = vertex_coords[i * element_stride + vertex_pointer_offset] * zoom;
+        }
+    }
+}
+
 canvas_t* create_canvas_object(unsigned int pixel_w, unsigned int pixel_h) {
     canvas_t* canvas = malloc(sizeof(canvas_t));
     canvas->rectangle_vertices = generate_vertex_coords(pixel_w, pixel_h);
@@ -95,6 +112,8 @@ canvas_t* create_canvas_object(unsigned int pixel_w, unsigned int pixel_h) {
     indices[5] = 3;
 
     canvas->rectangle_indices = indices;
+    canvas->pixel_w = pixel_w;
+    canvas->pixel_h = pixel_h;
 
     glGenVertexArrays(1, &canvas->vertex_array_object);
     glBindVertexArray(canvas->vertex_array_object);
@@ -136,9 +155,12 @@ void destroy_canvas_object(canvas_t* canvas) {
     free(canvas);
 }
 
-void mutate_canvas_object(canvas_t* canvas, unsigned int new_pixel_w, unsigned int new_pixel_h) {
+void mutate_canvas_object(canvas_t* canvas, unsigned int new_pixel_w, unsigned int new_pixel_h, unsigned int new_window_w, unsigned int new_window_h, float zoom) {
+    canvas->pixel_w = new_pixel_w;
+    canvas->pixel_h = new_pixel_h;
     free(canvas->rectangle_vertices);
     canvas->rectangle_vertices = generate_vertex_coords(new_pixel_w, new_pixel_h);
+    transform_world_coordinates_to_window_coordinates(canvas->rectangle_vertices, new_window_w, new_window_h, 4, 5, 0, zoom);
     glBindVertexArray(canvas->vertex_array_object);
     glBindBuffer(GL_ARRAY_BUFFER, canvas->vertex_buffer_object);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->element_buffer_object);

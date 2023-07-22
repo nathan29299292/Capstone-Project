@@ -15,6 +15,7 @@
 #include "gui.h"
 #include "canvas.h"
 #include "image.h"
+#include <GLFW/glfw3.h>
 #include <string.h>
 
 #define NK_INCLUDE_FIXED_TYPES
@@ -58,6 +59,8 @@ gui_handler* init_gui_handle(GLFWwindow *window, canvas_t* canvas) {
     nk_glfw3_font_stash_end(gui->glfw_ctx);
     nk_style_set_font(gui->ctx, &source->handle);
 
+    gui->window = window; // This is important for loading an image.
+
     return gui;
 }
 
@@ -91,9 +94,14 @@ void gui_load_file_window(gui_handler* gui) {
                 nk_end(gui->ctx); // End the context.
                 return;
             }
-            gui->gui_state = 1;
-            mutate_canvas_object(gui->canvas, gui->loaded->width, gui->loaded->height);
-            gui->binded = 1;
+            {
+                int window_w;
+                int window_h;
+                glfwGetFramebufferSize(gui->window, &window_w, &window_h);
+                gui->gui_state = 1;
+                mutate_canvas_object(gui->canvas, gui->loaded->width, gui->loaded->height, window_w, window_h, 1.0f);
+                gui->binded = 1;
+            }
         }
     }
     nk_end(gui->ctx);
@@ -103,7 +111,7 @@ void gui_generate_pattern(gui_handler* gui) {
     if (nk_begin(gui->ctx, "Generator", nk_rect(50, 50, 600, 650), NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_TITLE|NK_WINDOW_MINIMIZABLE)) {
 
         nk_layout_row_dynamic(gui->ctx, 50, 2);
-        if (nk_button_label(gui->ctx, "Generate Pattern")) {
+        if (nk_button_label(gui->ctx, "Generate Pattern") && gui->finished == 0) {
                gui->reprocessed = dither_image(gui->loaded);
                gui->finished = 1;
         }

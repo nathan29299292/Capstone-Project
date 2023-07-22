@@ -38,6 +38,6 @@ canvas_t* create_canvas_object(unsigned int pixel_w, unsigned int pixel_h);
 void draw_canvas_object(canvas_t* canvas);
 void destroy_canvas_object(canvas_t* canvas);
 
-void mutate_canvas_object(canvas_t* canvas, unsigned int new_pixel_w, unsigned int new_pixel_h);
+void mutate_canvas_object(canvas_t* canvas, unsigned int new_pixel_w, unsigned int new_pixel_h, unsigned int new_window_w, unsigned int new_window_h, float zoom);
 
 #endif

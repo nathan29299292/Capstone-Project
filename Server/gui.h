@@ -39,6 +39,7 @@ typedef struct gui_handler {
     image_t* loaded;
     image_t* reprocessed;
     canvas_t* canvas;
+    GLFWwindow* window;
 
     int finished;
     int binded;
