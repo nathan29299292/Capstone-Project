@@ -17,6 +17,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "gcode_serializer.h"
 
 typedef struct image_t {
     unsigned char* image_data;
@@ -24,6 +25,8 @@ typedef struct image_t {
     unsigned int height;
 
     GLuint texture;
+    char* gcode_data;
+    unsigned int gcode_data_length;
 } image_t;
 
 image_t* create_image(char* path);

@@ -42,6 +42,7 @@ image_t* create_image(char* path) {
 
     image->width = width;
     image->height = height;
+    image->gcode_data = NULL;
     return image;
 }
 
@@ -92,6 +93,9 @@ unsigned char get_new_pixel(unsigned char val) {
 }
 
 image_t* dither_image(image_t* image) {
+    init_stack();
+    toggle_distance_modes();
+
     for(int j = 0; j < (int)image->height; j++) {
         for(int i = 0; i < (int)image->width; i++) {
             // First convert it to grayscale.
@@ -101,6 +105,7 @@ image_t* dither_image(image_t* image) {
             set_pixel(image, j, i, val, 2);
         }
     }
+    point_t current_point = {0.0,0.0, Z_BREADTH};
 
     for(int j = 0; j < (int)image->height; j++) {
         for(int i = 0; i < (int)image->width; i++) {
@@ -108,6 +113,12 @@ image_t* dither_image(image_t* image) {
 
             int error = get_error_diffusion(val);
             unsigned char new_val = get_new_pixel(val);
+
+            if (new_val == 0) {
+                point_t next_point = {i * 0.15, j * 0.15, Z_BREADTH};
+                move_and_burn(current_point, next_point, 3);
+                current_point = next_point;
+            }
 
             set_all_pixel(image, j, i, new_val, 0);
             set_all_pixel(image, j, i+1, (((unsigned int)7 * (unsigned int)error) / 16), 1);
@@ -121,6 +132,9 @@ image_t* dither_image(image_t* image) {
     new_image->image_data = image->image_data;
     new_image->width = image->width;
     new_image->height = image->height;
+    new_image->gcode_data = extract_data();
+    new_image->gcode_data_length = extract_data_size();
+
 
     glGenTextures(1, &new_image->texture);
     glBindTexture(GL_TEXTURE_2D, new_image->texture);

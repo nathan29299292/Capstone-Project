@@ -1,23 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "gcode_serializer.h"
 #include "util.h"
 #include "string_builder.h"
+
 
 BOOL absolute_mode = NO;
 BOOL absolute_mode_flag_set = NO;
 
 const double burnrate_table[] = {0.15, 0.45, 0.85, 1.25};
-#define Z_BREADTH 5.0
-
-/* Define a point. */
-typedef struct point_t{
-    double x;
-    double y;
-    double z;
-} point_t;
 
 static string_builder_t* gcode_stack;
+
+void init_stack() {
+    gcode_stack = string_builder_init();
+}
+char* extract_data() {
+    char* string = string_builder_lwrap(gcode_stack);
+    return string;
+}
+
+int extract_data_size() {
+   return (int)string_builder_size(gcode_stack);
+}
 
 static void emit_gcode(const char* command, const char** param) {
     string_builder_t* gcode_line = string_builder_init();
@@ -126,18 +132,4 @@ void move_and_burn(point_t from, point_t to, int burn_index) {
     from = to;
     to.z += Z_BREADTH;
     move(NO, from, to, 100.0);
-}
-
-
-static const point_t a = {23.4, 0, Z_BREADTH};
-static const point_t b = {23.4, 12.2, Z_BREADTH};
-int main() {
-    gcode_stack = string_builder_init();
-    toggle_distance_modes();
-    move_and_burn(a, b, 2);
-    char* string = string_builder_lwrap(gcode_stack);
-    printf("%s\n", string);
-    printf("%d\n", (int)string_builder_size(gcode_stack));
-
-    return 0;
 }

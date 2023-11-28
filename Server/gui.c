@@ -71,6 +71,8 @@ void process_gui_handle(gui_handler* gui) {
         gui_load_file_window(gui);
     } else if (gui->gui_state == 1) {
         gui_generate_pattern(gui);
+    } else if (gui->gui_state == 2) {
+        gui_gcode_gen(gui);
     }
 
     nk_glfw3_render(gui->glfw_ctx, NK_ANTI_ALIASING_ON, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
@@ -114,8 +116,20 @@ void gui_generate_pattern(gui_handler* gui) {
         if (nk_button_label(gui->ctx, "Generate Pattern") && gui->finished == 0) {
                gui->reprocessed = dither_image(gui->loaded);
                gui->finished = 1;
+               gui->gui_state = 2;
         }
 
+    }
+    nk_end(gui->ctx);
+}
+
+void gui_gcode_gen(gui_handler* gui) {
+    if (nk_begin(gui->ctx, "G-Code", nk_rect(50, 50, 600, 650), NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_TITLE|NK_WINDOW_MINIMIZABLE)) {
+        nk_layout_row_dynamic(gui->ctx, 400, 1);
+        nk_edit_string_zero_terminated(gui->ctx, NK_EDIT_MULTILINE,gui->reprocessed->gcode_data, gui->reprocessed->gcode_data_length-1, nk_filter_default);
+        nk_layout_row_dynamic(gui->ctx, 50, 2);
+        if (nk_button_label(gui->ctx, "Save G-Code")) {
+        }
     }
     nk_end(gui->ctx);
 }

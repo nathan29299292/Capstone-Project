@@ -14,7 +14,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
 
-add_executable(PatternGen main.c gui.h gui.c shader.h shader.c canvas.h canvas.c image.h image.c)
+add_executable(PatternGen main.c gui.h gui.c shader.h shader.c canvas.h canvas.c image.h image.c util.h string_builder.h gcode_serializer.c gcode_serializer.h)
 
 check_ipo_supported(RESULT result OUTPUT output)
 

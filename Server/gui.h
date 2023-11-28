@@ -51,5 +51,6 @@ void destroy_gui_handle(gui_handler* gui);
 
 void gui_load_file_window(gui_handler* gui);
 void gui_generate_pattern(gui_handler* gui);
+void gui_gcode_gen(gui_handler* gui);
 
 #endif
