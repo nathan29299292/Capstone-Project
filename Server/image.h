@@ -33,6 +33,6 @@ image_t* create_image(char* path);
 image_t* dither_image(image_t* image);
 void bind_image(image_t* image);
 void destroy_image(image_t* image);
-
+void save_gcode();
 
 #endif

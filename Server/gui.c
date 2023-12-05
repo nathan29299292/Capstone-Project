@@ -129,6 +129,7 @@ void gui_gcode_gen(gui_handler* gui) {
         nk_edit_string_zero_terminated(gui->ctx, NK_EDIT_MULTILINE,gui->reprocessed->gcode_data, gui->reprocessed->gcode_data_length-1, nk_filter_default);
         nk_layout_row_dynamic(gui->ctx, 50, 2);
         if (nk_button_label(gui->ctx, "Save G-Code")) {
+            dump_gcode_stack();
         }
     }
     nk_end(gui->ctx);

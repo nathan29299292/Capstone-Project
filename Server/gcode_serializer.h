@@ -29,4 +29,6 @@ void move(BOOL fast, point_t from, point_t to, double feedrate) ;
 void dwell(double dwell_time);
 
 void move_and_burn(point_t from, point_t to, int burn_index);
+
+int dump_gcode_stack();
 #endif

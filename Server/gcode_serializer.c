@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "gcode_serializer.h"
 #include "util.h"
@@ -10,6 +12,7 @@ BOOL absolute_mode = NO;
 BOOL absolute_mode_flag_set = NO;
 
 const double burnrate_table[] = {0.15, 0.45, 0.85, 1.25};
+const char* output_path = "output.gcode";
 
 static string_builder_t* gcode_stack;
 
@@ -132,4 +135,28 @@ void move_and_burn(point_t from, point_t to, int burn_index) {
     from = to;
     to.z += Z_BREADTH;
     move(NO, from, to, 100.0);
+}
+
+int dump_gcode_stack() {
+    int fd = open(output_path, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+
+    if (fd == -1) {
+        return -1;
+    }
+
+    char* gcode = string_builder_lwrap(gcode_stack);
+    ssize_t size = (ssize_t)string_builder_size(gcode_stack);
+
+    ssize_t bytes_written = write(fd, gcode, size);
+
+    if (bytes_written == -1) {
+        close(fd);
+        return -1;
+    }
+
+    if (close(fd) == -1) {
+        return -1;
+    }
+
+    return 0;
 }
