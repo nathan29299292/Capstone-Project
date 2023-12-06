@@ -92,6 +92,7 @@ void gui_load_file_window(gui_handler* gui) {
         nk_edit_string_zero_terminated(gui->ctx, NK_EDIT_FIELD, gui->file_path_textbox_buffer, sizeof(gui->file_path_textbox_buffer)-1, nk_filter_default);
         if (nk_button_label(gui->ctx, "Load")) {
             gui->loaded = create_image(gui->file_path_textbox_buffer);
+            resize_image(gui->loaded, 80, 80);
             if (gui->loaded == NULL) {
                 nk_end(gui->ctx); // End the context.
                 return;

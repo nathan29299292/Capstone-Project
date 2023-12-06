@@ -42,6 +42,8 @@ image_t* create_image(char* path) {
 
     image->width = width;
     image->height = height;
+    image->real_width = width;
+    image->real_height = height;
     image->gcode_data = NULL;
     return image;
 }
@@ -65,32 +67,96 @@ void set_all_pixel(image_t* image, int j, int i, unsigned int value, unsigned ch
     if (j < 0 || j >= (int)image->height || i < 0 || i >= (int)image->width) {
         return;
     }
-    image->image_data[((int)image->width * j + i)*3 + 0] = (unsigned char)(inc * (unsigned int)image->image_data[((int)image->width * j + i)*3 + 0] + (unsigned int)value);
-    image->image_data[((int)image->width * j + i)*3 + 1] = (unsigned char)(inc * (unsigned int)image->image_data[((int)image->width * j + i)*3 + 1] + (unsigned int)value);
-    image->image_data[((int)image->width * j + i)*3 + 2] = (unsigned char)(inc * (unsigned int)image->image_data[((int)image->width * j + i)*3 + 2] + (unsigned int)value);
+
+    image->image_data[((int)image->width * j + i) * 3 + 0] = (unsigned char)(fmin(255, inc * (unsigned int)image->image_data[((int)image->width * j + i) * 3 + 0] + (unsigned int)value));
+    image->image_data[((int)image->width * j + i) * 3 + 1] = (unsigned char)(fmin(255, inc * (unsigned int)image->image_data[((int)image->width * j + i) * 3 + 1] + (unsigned int)value));
+    image->image_data[((int)image->width * j + i) * 3 + 2] = (unsigned char)(fmin(255, inc * (unsigned int)image->image_data[((int)image->width * j + i) * 3 + 2] + (unsigned int)value));
+}
+
+
+unsigned char get_new_pixel(unsigned char val) {
+    return (val/64)*64;
 }
 
 int get_error_diffusion(unsigned char val) {
-    unsigned char l_dist = 255 - val;
-    unsigned char h_dist = val;
-
-    if (l_dist > h_dist) {
-        return val;
-    } else {
-        return -1*(255 - val);
-    }
+    unsigned char quantized_value = get_new_pixel(val);
+    return abs((int)val - (int)quantized_value);
 }
 
-unsigned char get_new_pixel(unsigned char val) {
-    unsigned char l_dist = 255 - val;
-    unsigned char h_dist = val;
+/* Try to maintain the same aspect ratio. */
+void resize_image(image_t* image, unsigned int max_width, unsigned int max_height)  {
+    unsigned int width = image->width;
+    unsigned int height = image->height;
+    unsigned int new_height;
+    unsigned int new_width;
+    unsigned int padded_height;
+    unsigned int padded_width;
+    unsigned char* new_image;
 
-    if (l_dist > h_dist) {
-        return 0;
+    double aspect_ratio = ((double)width)/((double)height);
+    if (aspect_ratio > 1.0) {
+        new_height = ceil(((double)max_width * (double)height) / (double)width);
+        new_width = max_width;
     } else {
-        return 255;
+        new_height = max_height;
+        new_width = ceil(((double)max_height * (double)width) / (double)height);
     }
+
+    // If the image is less than 1024 x 1024, then we need to round it to the nearest.
+    // 2^x, because OpenGL is stupid.
+    if (new_height < 1024 || new_width < 1024) {
+        padded_width = 1;
+        while(padded_width < new_width) {
+            padded_width <<= 1;
+        }
+
+        padded_height = 1;
+        while(padded_height < new_height) {
+            padded_height <<= 1;
+        }
+        new_image = (unsigned char*)calloc(padded_width * padded_height * 3, 1);
+
+        image->real_height = padded_height;
+        image->real_width = padded_width;
+    } else {
+        padded_width = new_width;
+        padded_height = new_height;
+        new_image = (unsigned char*)malloc(new_width * new_height * 3);
+    }
+
+    double x_step = ((double)width) / ((double)new_width);
+    double y_step = ((double)height) / ((double)new_height);
+
+    for (unsigned int i = 0; i < padded_height; i++) {
+        for (unsigned int j = 0; j < padded_width; j++) {
+            if (j < new_width && i < new_height) {
+                unsigned int x = round((x_step)*(double)j); // Nearest sampling.
+                unsigned int y = round((y_step)*(double)i); // Nearest sampling.
+
+                new_image[(i * new_width + j)*3] = (unsigned int)fmin(1.65 * ((double)image->image_data[(y * width + x)*3]), 255.0);
+                new_image[(i * new_width + j)*3+1] = (unsigned int)fmin(1.65 * ((double)image->image_data[(y * width + x)*3+1]), 255.0);
+                new_image[(i * new_width + j)*3+2] = (unsigned int)fmin(1.65 * ((double)image->image_data[(y * width + x)*3+2]), 255.0);
+            }
+        }
+    }
+
+    // Free old image.
+    stbi_image_free(image->image_data);
+    image->image_data = new_image;
+    image->width = new_width;
+    image->height = new_height;
+
+    image->real_width = padded_width;
+    image->real_height = padded_height;
+
+    glBindTexture(GL_TEXTURE_2D, image->texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, new_image);
 }
+
 
 image_t* dither_image(image_t* image) {
     init_stack();
@@ -114,9 +180,19 @@ image_t* dither_image(image_t* image) {
             int error = get_error_diffusion(val);
             unsigned char new_val = get_new_pixel(val);
 
-            if (new_val == 0) {
-                point_t next_point = {i * 0.15, j * 0.15, Z_BREADTH};
-                move_and_burn(current_point, next_point, 3);
+            if (new_val/64 == 3) {
+
+            }else if (new_val == 0) {
+                point_t next_point = {i * 1.0, j * 1.0, Z_BREADTH};
+                move_and_burn(current_point, next_point, 2, 0);
+                current_point = next_point;
+            } else if (new_val/64 == 1) {
+                point_t next_point = {i * 1.0, j * 1.0, Z_BREADTH};
+                move_and_burn(current_point, next_point, 1, 1);
+                current_point = next_point;
+            } else if (new_val/64 == 2) {
+                point_t next_point = {i * 1.0, j * 1.0, Z_BREADTH};
+                move_and_burn(current_point, next_point, 0, 2);
                 current_point = next_point;
             }
 
@@ -134,7 +210,8 @@ image_t* dither_image(image_t* image) {
     new_image->height = image->height;
     new_image->gcode_data = extract_data();
     new_image->gcode_data_length = extract_data_size();
-
+    new_image->real_height = image->height;
+    new_image->real_width = image->width;
 
     glGenTextures(1, &new_image->texture);
     glBindTexture(GL_TEXTURE_2D, new_image->texture);
@@ -142,7 +219,7 @@ image_t* dither_image(image_t* image) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, new_image->width, new_image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, new_image->image_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, new_image->real_width, new_image->real_height, 0, GL_RGB, GL_UNSIGNED_BYTE, new_image->image_data);
 
     return new_image;
 }
@@ -154,6 +231,5 @@ void bind_image(image_t* image) {
 
 void destroy_image(image_t* image) {
     glDeleteTextures(1, &image->texture);
-    stbi_image_free(image->image_data);
     free(image);
 }

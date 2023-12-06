@@ -6,7 +6,7 @@ message("PatternGen by Parker Candland and Nathan Pratt.")
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_BUILD_TYPE MinSizeRel)
+set(CMAKE_BUILD_TYPE Debug)
 
 check_ipo_supported(RESULT result OUTPUT output)
 

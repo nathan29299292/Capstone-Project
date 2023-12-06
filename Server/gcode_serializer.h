@@ -2,7 +2,7 @@
 #define GCODE_SERIALIZER_H
 #include "util.h"
 
-#define Z_BREADTH 5.0
+#define Z_BREADTH 6.6
 
 /* Define a point. */
 typedef struct point_t{
@@ -23,12 +23,12 @@ void set_incremental_distance_mode();
 
 void toggle_distance_modes() ;
 
-void move(BOOL fast, point_t from, point_t to, double feedrate) ;
+void move(BOOL fast, point_t from, point_t to, double feedrate, int stack);
 
 /* In seconds. */
-void dwell(double dwell_time);
+void dwell(double dwell_time, int stack);
 
-void move_and_burn(point_t from, point_t to, int burn_index);
+void move_and_burn(point_t from, point_t to, int burn_index, int stack);
 
 int dump_gcode_stack();
 #endif

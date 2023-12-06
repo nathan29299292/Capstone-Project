@@ -24,6 +24,9 @@ typedef struct image_t {
     unsigned int width;
     unsigned int height;
 
+    unsigned int real_width;
+    unsigned int real_height;
+
     GLuint texture;
     char* gcode_data;
     unsigned int gcode_data_length;
@@ -34,5 +37,6 @@ image_t* dither_image(image_t* image);
 void bind_image(image_t* image);
 void destroy_image(image_t* image);
 void save_gcode();
+void resize_image(image_t* image, unsigned int max_width, unsigned int max_height);
 
 #endif

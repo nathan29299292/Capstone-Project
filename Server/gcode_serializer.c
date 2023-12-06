@@ -11,13 +11,17 @@
 BOOL absolute_mode = NO;
 BOOL absolute_mode_flag_set = NO;
 
-const double burnrate_table[] = {0.15, 0.45, 0.85, 1.25};
+const double burnrate_table[] = {0.45, 0.85, 1.25};
 const char* output_path = "output.gcode";
 
 static string_builder_t* gcode_stack;
+static string_builder_t* gcode_stack_1;
+static string_builder_t* gcode_stack_2;
 
 void init_stack() {
     gcode_stack = string_builder_init();
+    gcode_stack_1 = string_builder_init();
+    gcode_stack_2 = string_builder_init();
 }
 char* extract_data() {
     char* string = string_builder_lwrap(gcode_stack);
@@ -28,7 +32,7 @@ int extract_data_size() {
    return (int)string_builder_size(gcode_stack);
 }
 
-static void emit_gcode(const char* command, const char** param) {
+static void emit_gcode(const char* command, const char** param, int stack) {
     string_builder_t* gcode_line = string_builder_init();
 
     /* Append the main command itself. */
@@ -54,7 +58,13 @@ static void emit_gcode(const char* command, const char** param) {
     string_builder_appends(gcode_line, "\n");
 
     /* Append to the main gcode stack. */
-    string_builder_appendsb(gcode_stack, gcode_line);
+    if (stack == 0) {
+        string_builder_appendsb(gcode_stack, gcode_line);
+    } else if (stack == 1) {
+        string_builder_appendsb(gcode_stack_1, gcode_line);
+    } else {
+        string_builder_appendsb(gcode_stack_2, gcode_line);
+    }
     /* Free the gcode_line. */
     string_builder_destroy(gcode_line);
 }
@@ -64,7 +74,7 @@ void set_absolute_distance_mode() {
     absolute_mode_flag_set = YES;
 
     const char* param[] = {NULL};
-    emit_gcode("G90", param);
+    emit_gcode("G90", param, 0);
 }
 
 void set_incremental_distance_mode() {
@@ -72,7 +82,7 @@ void set_incremental_distance_mode() {
     absolute_mode_flag_set = YES;
 
     const char* param[] = {NULL};
-    emit_gcode("G91", param);
+    emit_gcode("G91", param, 0);
 }
 
 void toggle_distance_modes() {
@@ -85,7 +95,7 @@ void toggle_distance_modes() {
     }
 }
 
-void move(BOOL fast, point_t from, point_t to, double feedrate) {
+void move(BOOL fast, point_t from, point_t to, double feedrate, int stack) {
     /* Final strings for the numbers. */
     double x_f = to.x;
     double y_f = to.y;
@@ -110,31 +120,31 @@ void move(BOOL fast, point_t from, point_t to, double feedrate) {
     const char* param[] = {"X", x, "Y", y, "Z", z, "F", feedrate_s, NULL};
 
     if (fast) {
-        emit_gcode("G0", param);
+        emit_gcode("G0", param, stack);
     } else {
-        emit_gcode("G1", param);
+        emit_gcode("G1", param, stack);
     }
 }
 
 /* In seconds. */
-void dwell(double dwell_time) {
+void dwell(double dwell_time, int stack) {
     char p[32];
 
     snprintf(p, 32, "%.4f", dwell_time);
 
     const char* param[] = {"P", p, NULL};
-    emit_gcode("G4", param);
+    emit_gcode("G4", param, stack);
 }
 
-void move_and_burn(point_t from, point_t to, int burn_index) {
-    move(NO, from, to, 100.0);
+void move_and_burn(point_t from, point_t to, int burn_index, int stack) {
+    move(NO, from, to, 100.0, stack);
     from = to;
     to.z -= Z_BREADTH;
-    move(NO, from, to, 100.0);
-    dwell(burnrate_table[burn_index]);
+    move(NO, from, to, 100.0, stack);
+    dwell(burnrate_table[burn_index], stack);
     from = to;
     to.z += Z_BREADTH;
-    move(NO, from, to, 100.0);
+    move(NO, from, to, 100.0, stack);
 }
 
 int dump_gcode_stack() {
@@ -144,8 +154,14 @@ int dump_gcode_stack() {
         return -1;
     }
 
-    char* gcode = string_builder_lwrap(gcode_stack);
-    ssize_t size = (ssize_t)string_builder_size(gcode_stack);
+    string_builder_t* final_gcode = string_builder_init();
+
+    string_builder_appendsb(final_gcode, gcode_stack);
+    string_builder_appendsb(final_gcode, gcode_stack_1);
+    string_builder_appendsb(final_gcode, gcode_stack_2);
+
+    char* gcode = string_builder_lwrap(final_gcode);
+    ssize_t size = (ssize_t)string_builder_size(final_gcode);
 
     ssize_t bytes_written = write(fd, gcode, size);
 
